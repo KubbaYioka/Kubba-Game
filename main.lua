@@ -39,38 +39,63 @@ function love.load()
     --Other Tables
     platforms = {}
 
-
-
     --debug material DELETE WHEN DONE TESTING
     regFrameTotal = 0
+    debugug = 0
+    debugugug = 0
+    debugugugug = 0
 end
 
 function love.update(dt)
     world:update(dt)
-    kubba.animation:update(dt)
+
     kubbaUpdate(dt)
 
-    function love.keypressed(key)
-        local kx, ky = kubba:getPosition()
-        if key == 'space' then
-            if kubba.onGround then
-                kubba:applyLinearImpulse(0, -400)           
-            end
-        end
-        if key == 'z' then
-            if kubba.onGround then
-                kubba.attacking = true
-            end
-        else
-            kubba.attacking = false
-        end
-    end
+    deBug()
 end
 
 function love.draw()
     world:draw()
     drawKubba()
     love.graphics.print(regFrameTotal, 20, 20)
+    love.graphics.print("onground " ..debugug, 20, 40)
+    love.graphics.print("attacking: " ..debugugug, 20, 60)
+    love.graphics.print("onground not attacking:" ..debugugugug, 120, 40)
+end
+
+function love.keypressed(key)
+    local kx, ky = kubba:getPosition()
+    
+    if key == 'space' then        
+        if kubba.onGround and not kubba.attacking then
+            kubba:applyLinearImpulse(0, -400)  
+        end
+    end
+    if key == 'z' then
+        if kubba.onGround then
+            kubba.attacking = true
+            regFrameTotal = 0.00
+        end
+    end
+end
+
+function deBug()
+    if kubba.onGround then
+        debugug = 1
+    else
+        debugug = 0
+    end
+    if kubba.attacking then
+        debugugug = 1
+    else
+        debugugug = 0
+    end
+    if kubba.onGround and not kubba.attacking then
+        debugugugug = 1
+    else
+        debugugugug = 0
+    end
+
 end
 
 function spawnPlatform(x, y, width, height)

@@ -21,9 +21,27 @@ kubba.attacking = false
 kubba.velocity = 0
 kubba.acceleration = 1
 
---animation control
-regLoopTrigger = false
+--animation loop control for 32x32 sprites
+--takes five arguments, the range in the animation grid, the row of the animation
+--, the number of times that animation is to be played, and the associated boolean that will be made false at the 
+--end of the loop. The last variable is dt.
 
+function animationLoopReg(gridRange, row, loopNumber, aniSpeed, aniBoolean, dt)
+    local kubbaRegular = anim8.newGrid(32, 32, sprites.kubba:getWidth(), sprites.kubba:getHeight())
+
+    if aniBoolean then
+        local frameNumber = kubbaRegular:getFrames(gridRange, row)
+        local totalLoop = #frameNumber * loopNumber
+        if regFrameTotal >= totalLoop * aniSpeed then
+            aniBoolean = false
+        else
+            regFrameTotal = regFrameTotal + 1 * dt
+        end
+    end
+    if aniBoolean == false then
+        kubba.animation = kubbaAnimations.stand
+    end
+end
 
 function kubbaUpdate(dt)
     --checks to see that the kubba hitbox exists
@@ -41,7 +59,6 @@ function kubbaUpdate(dt)
         kubba.moving = false
         -- function that checks every frame for keypresses for left and right. 
         -- If either is pressed, then the x value for the kubba changes. * dt ties to FPS
-
 
         if love.keyboard.isDown('right') then
             if kubba.attacking == false then
@@ -76,20 +93,17 @@ function kubbaUpdate(dt)
         if kubba.attacking then
             kubba.animation = kubbaAnimations.attackClaw
             animationLoopReg('1-9', 3, 1, 0.05, kubba.attacking, dt)
-        else
-            kubba.animation = kubbaAnimations.stand 
         end
     else
         kubba.animation = kubbaAnimations.inAir
-        
     end
-
 
     if testPlatform then
         spawnPlatform(50, 150, 150, 40)
         spawnPlatform(200, 130, 100, 60)
         testPlatform = false
     end
+    kubba.animation:update(dt)
 end
 
 function drawKubba()
@@ -99,23 +113,3 @@ function drawKubba()
     --love.graphics.draw()
 end
 
-    --animation loop control for 32x32 sprites
-    --takes five arguments, the range in the animation grid, the row of the animation
-    --, the number of times that animation is to be played, and the associated boolean that will be made false at the 
-    --end of the loop. The last variable is dt.
-function animationLoopReg(gridRange, row, loopNumber, aniSpeed, aniBoolean, dt)
-    local kubbaRegular = anim8.newGrid(32, 32, sprites.kubba:getWidth(), sprites.kubba:getHeight())
-
-    if aniBoolean then
-        local frameNumber = kubbaRegular:getFrames(gridRange, row)
-        local totalLoop = #frameNumber * loopNumber
-        if regFrameTotal >= totalLoop * aniSpeed then
-            aniBoolean = false
-        else
-            regFrameTotal = regFrameTotal + 1 * dt
-        end
-    end
-    if aniBoolean == false then
-        kubba.animation = kubbaAnimations.stand
-    end
-end
