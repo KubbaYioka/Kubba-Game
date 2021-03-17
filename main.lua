@@ -6,15 +6,10 @@ function love.load()
     sti = require 'libraries/Simple-Tiled-Implementation/sti'
     cameraFile = require 'libraries/hump/camera'
     vector = require 'libraries/hump/vector'
+
+    cam = cameraFile()
+
     
-    world = wf.newWorld(0, 600, false)
-    --allows for collision query 
-    world:setQueryDebugDrawing(true)
-
-    --collision classes
-
-    world:addCollisionClass('Ground')
-    world:addCollisionClass('Kubba')
 
     --sprites and sprite tables
     sprites = {}
@@ -33,74 +28,68 @@ function love.load()
     kubbaAnimations.inAir = anim8.newAnimation(kubbaRegular('1-2', 2), 0.07)
     kubbaAnimations.attackClaw = anim8.newAnimation(kubbaRegular('1-9', 3), 0.05)
 
+    world = wf.newWorld(0, 600, false)
+    --allows for collision query 
+    world:setQueryDebugDrawing(true)
+
+    --collision classes
+
+    world:addCollisionClass('solid')
+    world:addCollisionClass('semiSolid')
+    world:addCollisionClass('Kubba')
+
     --required
     require('kubba')
+    require('levelControl')
 
     --Other Tables
     platforms = {}
+    semiPlatforms = {}
+    semiSlopePlatforms = {}
 
-    --debug material DELETE WHEN DONE TESTING
+    -- global vars
     regFrameTotal = 0
-    debugug = 0
-    debugugug = 0
-    debugugugug = 0
+
+    --debug
+    debug = 0
+
 end
 
 function love.update(dt)
     world:update(dt)
-
     kubbaUpdate(dt)
 
-    deBug()
+    local kx, ky = kubba:getPosition()
+    cam:lockWindow(kx, ky, kx-10, kx+10, ky-10, ky+10)
+    cam:lookAt(kx, ky)
 end
 
 function love.draw()
-    world:draw()
-    drawKubba()
-    love.graphics.print(regFrameTotal, 20, 20)
-    love.graphics.print("onground " ..debugug, 20, 40)
-    love.graphics.print("attacking: " ..debugugug, 20, 60)
-    love.graphics.print("onground not attacking:" ..debugugugug, 120, 40)
+    cam:attach()
+        levelMap:drawLayer(levelMap.layers["background"])
+        levelMap:drawLayer(levelMap.layers["level"])
+        
+        world:draw()
+        drawKubba()
+        levelMap:drawLayer(levelMap.layers["foreground"])
+    cam:detach()
+    love.graphics.print(debug)
 end
 
 function love.keypressed(key)
     local kx, ky = kubba:getPosition()
-    
-    if key == 'space' then        
+    if key == 'space' then
         if kubba.onGround and not kubba.attacking then
-            kubba:applyLinearImpulse(0, -400)  
+            kubba:applyLinearImpulse(0, -200)
         end
     end
     if key == 'z' then
         if kubba.onGround then
             kubba.attacking = true
-            regFrameTotal = 0.00
         end
     end
 end
 
-function deBug()
-    if kubba.onGround then
-        debugug = 1
-    else
-        debugug = 0
-    end
-    if kubba.attacking then
-        debugugug = 1
-    else
-        debugugug = 0
-    end
-    if kubba.onGround and not kubba.attacking then
-        debugugugug = 1
-    else
-        debugugugug = 0
-    end
-
-end
-
-function spawnPlatform(x, y, width, height)
-    -- second physics hitbox for a STATIC hitbox (does not move)
-    local platform = world:newRectangleCollider(x, y, width, height, {collision_class = "Ground"})
-    platform:setType('static')
-    table.insert(platforms, platform)
+function cameraView()
+    debug = #mapDetails
 end

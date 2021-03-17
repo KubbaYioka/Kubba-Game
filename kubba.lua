@@ -6,20 +6,22 @@ testPlatform = true
 -- created a collider object at x y position 360 and 100 at 80 x 80 pixels
 -- associates hitbox with collision class "Player"
 -- speed line accounts for framerate
-kubba = world:newRectangleCollider(kubbaStartX, kubbaStartY, 32, 32, {collision_class = "Kubba"}) 
+kubba = world:newRectangleCollider(kubbaStartX, kubbaStartY, 20, 20, {collision_class = "Kubba"}) 
 --disables rotation
 kubba:setFixedRotation(true) 
+kubba:setFriction(1)
 
 kubba.animation = kubbaAnimations.stand
-kubba.speed = 75
+kubba.speed = 2
 kubba.moving = false
 kubba.direction = 1
 kubba.onGround = false
 kubba.attacking = false
 
 --velocity
-kubba.velocity = 0
-kubba.acceleration = 1
+kubba.vel = 0
+kubba.accel = 2
+kubba.decel = 2
 
 --animation loop control for 32x32 sprites
 --takes five arguments, the range in the animation grid, the row of the animation
@@ -40,7 +42,9 @@ function animationLoopReg(gridRange, row, loopNumber, aniSpeed, aniBoolean, dt)
     end
     if aniBoolean == false then
         kubba.animation = kubbaAnimations.stand
+        regFrameTotal = 0
     end
+    return aniBoolean
 end
 
 function kubbaUpdate(dt)
@@ -49,36 +53,51 @@ function kubbaUpdate(dt)
         local kx, ky = kubba:getPosition()
 
         --checks to see if the kubba is on the ground
-        local colliders = world:queryRectangleArea(kubba:getX() - 15, kubba:getY() + 15, 30, 2, {'Ground'})
+        local colliders = world:queryRectangleArea(kubba:getX() - 10, kubba:getY() + 10, 20, 4, {'solid', 'semiSolid'})
         if #colliders >0 then
             kubba.onGround = true
         else
             kubba.onGround = false
         end
 
-        kubba.moving = false
+        --kubba.moving = false
         -- function that checks every frame for keypresses for left and right. 
         -- If either is pressed, then the x value for the kubba changes. * dt ties to FPS
 
         if love.keyboard.isDown('right') then
             if kubba.attacking == false then
-                kubba:setX(kx + kubba.speed*dt)
-                if love.keyboard.isDown('c') then
-                    kubba:setX(kx + (kubba.speed + 50) * dt)
+                kubba.vel = kubba.vel + (kubba.speed * kubba.accel * dt)
+                if kubba.vel > kubba.speed then
+                    kubba.vel = kubba.speed
                 end
+                kubba:setX(kx + kubba.vel)
                 kubba.moving = true
             end
             kubba.direction = 1
-        end
-        if love.keyboard.isDown('left') then
+        elseif love.keyboard.isDown('left') then
             if kubba.attacking == false then
-                kubba:setX(kx - kubba.speed*dt)
-                if love.keyboard.isDown('c') then
-                    kubba:setX(kx - (kubba.speed + 50) * dt)
+                kubba.vel = kubba.vel - (kubba.speed * kubba.accel * dt)
+                if kubba.vel < -kubba.speed then
+                    kubba.vel = -kubba.speed
                 end
+                kubba:setX(kx + kubba.vel)
                 kubba.moving = true
             end
             kubba.direction = -1
+        else
+            kubba.moving = false
+            if kubba.vel > 0 then
+                kubba.vel = kubba.vel - (kubba.speed * kubba.decel * dt)
+                if kubba.vel < 0 then
+                    kubba.vel = 0
+                end
+            elseif kubba.vel < 0 then
+                kubba.vel = kubba.vel + (kubba.speed * kubba.decel * dt)
+                if kubba.vel > 0 then
+                    kubba.vel = 0
+                end
+            end
+            
         end
 
         --check for kubba danger collision
@@ -92,24 +111,35 @@ function kubbaUpdate(dt)
         kubba.animation = kubbaAnimations.stand
         if kubba.attacking then
             kubba.animation = kubbaAnimations.attackClaw
-            animationLoopReg('1-9', 3, 1, 0.05, kubba.attacking, dt)
+            kubba.attacking = animationLoopReg('1-9', 3, 1, 0.05, kubba.attacking, dt)
         end
     else
         kubba.animation = kubbaAnimations.inAir
     end
 
     if testPlatform then
-        spawnPlatform(50, 150, 150, 40)
-        spawnPlatform(200, 130, 100, 60)
+        loadLevel('testLevel')
         testPlatform = false
     end
     kubba.animation:update(dt)
 end
 
+function kubbaAttackBox(attackTable)
+    --pass string value to kubbaAttackBox and concatinate that string with the global table's items, which they will
+    --all have.
+    if attackTable.enable then
+        --create hitbox with given dimensions at the specified coordinates during the frames specified
+        --check for special conditions (if attackTable.projectile == true, etc)
+    end
+end
+
+
 function drawKubba()
     --draw sprites
     local kx, ky = kubba:getPosition()
-    kubba.animation:draw(sprites.kubba, kx, ky, nil, 1 * kubba.direction, 1, 16, 16)
-    --love.graphics.draw()
+    if kubba.animation == kubbaAnimations.inAir then
+        kubba.animation:draw(sprites.kubba, kx, ky, nil, 1 * kubba.direction, 1, 16, 11)
+    else
+        kubba.animation:draw(sprites.kubba, kx, ky, nil, 1 * kubba.direction, 1, 18, 22)
+    end
 end
-
