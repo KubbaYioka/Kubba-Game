@@ -131,7 +131,7 @@ function kubbaAttackBox()
         --check for special conditions (if attackTable.projectile == true, etc)
 end
 
-function switchWeapon()
+--[[function switchWeapon()
   local w = kubba.currentWeapon
   local b = weaponTable[w].weaponEnabled
     while b == false do
@@ -146,6 +146,14 @@ function switchWeapon()
         return w
       end
     end
+end]]
+
+function switchWeapon()
+local w = kubba.currentWeapon -- assume current weapon is never disabled
+  for i=1,8 do
+    if weaponTable[((w+i-1)%9)+1].weaponEnabled then return i end
+  end
+  return w
 end
 
 function drawKubba()
