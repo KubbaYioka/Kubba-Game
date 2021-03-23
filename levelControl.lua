@@ -1,4 +1,4 @@
-mapDetails = {}
+
 
 function spawnSolid(x, y, width, height)
     local platform = world:newRectangleCollider(x, y, width, height, {collision_class = "solid"})
@@ -31,9 +31,10 @@ end
 function loadLevel(levelName)
 
     levelMap = sti("levels/" .. levelName .. ".lua")
-    mapDetails = levelMap:getLayerProperties(levelMap.layers["background"])
+    local mapX = levelMap.layers["background"].width
+    local mapY = levelMap.layers["background"].height
 
-    cameraView()
+    cameraView(mapX, mapY)
 
     for i, obj in pairs(levelMap.layers["start"].objects) do
         kubbaStartX = obj.x

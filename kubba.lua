@@ -6,9 +6,9 @@ testPlatform = true
 -- created a collider object at x y position 360 and 100 at 80 x 80 pixels
 -- associates hitbox with collision class "Player"
 -- speed line accounts for framerate
-kubba = world:newRectangleCollider(kubbaStartX, kubbaStartY, 20, 20, {collision_class = "Kubba"}) 
+kubba = world:newRectangleCollider(kubbaStartX, kubbaStartY, 20, 20, {collision_class = "Kubba"})
 --disables rotation
-kubba:setFixedRotation(true) 
+kubba:setFixedRotation(true)
 kubba:setFriction(1)
 
 kubba.animation = kubbaAnimations.stand
@@ -17,6 +17,7 @@ kubba.moving = false
 kubba.direction = 1
 kubba.onGround = false
 kubba.attacking = false
+kubba.currentWeapon = 1
 
 --velocity
 kubba.vel = 0
@@ -25,7 +26,7 @@ kubba.decel = 2
 
 --animation loop control for 32x32 sprites
 --takes five arguments, the range in the animation grid, the row of the animation
---, the number of times that animation is to be played, and the associated boolean that will be made false at the 
+--, the number of times that animation is to be played, and the associated boolean that will be made false at the
 --end of the loop. The last variable is dt.
 
 function animationLoopReg(gridRange, row, loopNumber, aniSpeed, aniBoolean, dt)
@@ -61,7 +62,7 @@ function kubbaUpdate(dt)
         end
 
         --kubba.moving = false
-        -- function that checks every frame for keypresses for left and right. 
+        -- function that checks every frame for keypresses for left and right.
         -- If either is pressed, then the x value for the kubba changes. * dt ties to FPS
 
         if love.keyboard.isDown('right') then
@@ -97,15 +98,15 @@ function kubbaUpdate(dt)
                     kubba.vel = 0
                 end
             end
-            
+
         end
 
         --check for kubba danger collision
         if kubba:enter('Danger') then
             kubba:setPosition(kubbaStartX, kubbaStartY)
         end
-    end    
-    
+    end
+
     --animation control
     if kubba.onGround then
         kubba.animation = kubbaAnimations.stand
@@ -124,15 +125,28 @@ function kubbaUpdate(dt)
     kubba.animation:update(dt)
 end
 
-function kubbaAttackBox(attackTable)
-    --pass string value to kubbaAttackBox and concatinate that string with the global table's items, which they will
-    --all have.
-    if attackTable.enable then
+function kubbaAttackBox()
+
         --create hitbox with given dimensions at the specified coordinates during the frames specified
         --check for special conditions (if attackTable.projectile == true, etc)
-    end
 end
 
+function switchWeapon()
+  local w = kubba.currentWeapon
+  local b = weaponTable[w].weaponEnabled
+    while b == false do
+      b = weaponTable[w].weaponEnabled
+      w = w+1
+      if w <= 9 then
+        if b then
+          return w
+        end
+      else
+        w = 1
+        return w
+      end
+    end
+end
 
 function drawKubba()
     --draw sprites

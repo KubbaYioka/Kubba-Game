@@ -9,8 +9,6 @@ function love.load()
 
     cam = cameraFile()
 
-    
-
     --sprites and sprite tables
     sprites = {}
     sprites.kubba = love.graphics.newImage('graphics/kubbaSheet.png')
@@ -29,7 +27,7 @@ function love.load()
     kubbaAnimations.attackClaw = anim8.newAnimation(kubbaRegular('1-9', 3), 0.05)
 
     world = wf.newWorld(0, 600, false)
-    --allows for collision query 
+    --allows for collision query
     world:setQueryDebugDrawing(true)
 
     --collision classes
@@ -41,6 +39,8 @@ function love.load()
     --required
     require('kubba')
     require('levelControl')
+    require('cameraControl')
+    require('progressTables')
 
     --Other Tables
     platforms = {}
@@ -51,29 +51,29 @@ function love.load()
     regFrameTotal = 0
 
     --debug
-    debug = 0
-
+    debugX = 0
+    debugY = 0
 end
 
 function love.update(dt)
     world:update(dt)
     kubbaUpdate(dt)
 
-    local kx, ky = kubba:getPosition()
-    cam:lockWindow(kx, ky, kx-10, kx+10, ky-10, ky+10)
-    cam:lookAt(kx, ky)
+    cameraUpdate(dt)
 end
 
 function love.draw()
     cam:attach()
         levelMap:drawLayer(levelMap.layers["background"])
         levelMap:drawLayer(levelMap.layers["level"])
-        
+
         world:draw()
         drawKubba()
         levelMap:drawLayer(levelMap.layers["foreground"])
     cam:detach()
-    love.graphics.print(debug)
+    love.graphics.print(kubba.currentWeapon)
+    love.graphics.print(debugX, 0, 10)
+    love.graphics.print(debugY, 0, 20)
 end
 
 function love.keypressed(key)
@@ -88,8 +88,7 @@ function love.keypressed(key)
             kubba.attacking = true
         end
     end
-end
-
-function cameraView()
-    debug = #mapDetails
+    if key == 't' then
+        kubba.currentWeapon = switchWeapon()
+    end
 end
